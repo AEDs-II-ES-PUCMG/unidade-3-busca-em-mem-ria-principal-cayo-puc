@@ -56,6 +56,7 @@ public class ABB<K, V> implements IMapeamento<K, V>{
         nova = copiarArvore(original.raiz, funcaoChave, nova);
         this.raiz = nova.raiz;
         this.comparador = (Comparator<K>) Comparator.naturalOrder();
+        this.tamanho = nova.tamanho;
     }
     
     /**
@@ -135,8 +136,29 @@ public class ABB<K, V> implements IMapeamento<K, V>{
      * @return o tamanho atualizado da árvore após a execução da operação de inserção.
      */
     public int inserir(K chave, V item) {
-    	// TODO
+    	raiz = inserir(raiz, chave, item);
     	return tamanho;
+    }
+
+    private No<K, V> inserir(No<K, V> raizArvore, K chave, V item) {
+
+    	int comparacao;
+
+    	if (raizArvore == null) {
+    		tamanho++;
+    		return new No<K, V>(chave, item);
+    	}
+
+    	comparacao = comparador.compare(chave, raizArvore.getChave());
+
+    	if (comparacao == 0)
+    		raizArvore.setItem(item);
+    	else if (comparacao < 0)
+    		raizArvore.setEsquerda(inserir(raizArvore.getEsquerda(), chave, item));
+    	else
+    		raizArvore.setDireita(inserir(raizArvore.getDireita(), chave, item));
+
+    	return raizArvore;
     }
 
     @Override 
@@ -146,8 +168,18 @@ public class ABB<K, V> implements IMapeamento<K, V>{
 
     @Override
     public String percorrer() {
-    	// TODO
-    	return null;
+    	StringBuilder resultado = new StringBuilder();
+    	percorrer(raiz, resultado);
+    	return resultado.toString();
+    }
+
+    private void percorrer(No<K, V> raizArvore, StringBuilder resultado) {
+
+    	if (raizArvore != null) {
+    		percorrer(raizArvore.getEsquerda(), resultado);
+    		resultado.append(raizArvore.getItem()).append("\n");
+    		percorrer(raizArvore.getDireita(), resultado);
+    	}
     }
 
     @Override
@@ -157,16 +189,93 @@ public class ABB<K, V> implements IMapeamento<K, V>{
      * @return o valor associado ao item removido.
      */
     public V remover(K chave) {
-    	// TODO
-    	return null;
+    	ResultadoRemocao<V> resultado = new ResultadoRemocao<>();
+    	raiz = remover(raiz, chave, resultado);
+    	return resultado.itemRemovido;
+    }
+
+    private No<K, V> remover(No<K, V> raizArvore, K chave, ResultadoRemocao<V> resultado) {
+
+    	int comparacao;
+
+    	if (raizArvore == null)
+    		throw new NoSuchElementException("O item nÃ£o foi localizado na Ã¡rvore!");
+
+    	comparacao = comparador.compare(chave, raizArvore.getChave());
+
+    	if (comparacao < 0)
+    		raizArvore.setEsquerda(remover(raizArvore.getEsquerda(), chave, resultado));
+    	else if (comparacao > 0)
+    		raizArvore.setDireita(remover(raizArvore.getDireita(), chave, resultado));
+    	else {
+    		resultado.itemRemovido = raizArvore.getItem();
+    		tamanho--;
+
+    		if (raizArvore.getEsquerda() == null)
+    			return raizArvore.getDireita();
+    		if (raizArvore.getDireita() == null)
+    			return raizArvore.getEsquerda();
+
+    		No<K, V> sucessor = menor(raizArvore.getDireita());
+    		raizArvore.setChave(sucessor.getChave());
+    		raizArvore.setItem(sucessor.getItem());
+    		raizArvore.setDireita(removerMenor(raizArvore.getDireita()));
+    	}
+
+    	return raizArvore;
+    }
+
+    private No<K, V> menor(No<K, V> raizArvore) {
+
+    	while (raizArvore.getEsquerda() != null)
+    		raizArvore = raizArvore.getEsquerda();
+
+    	return raizArvore;
+    }
+
+    private No<K, V> removerMenor(No<K, V> raizArvore) {
+
+    	if (raizArvore.getEsquerda() == null)
+    		return raizArvore.getDireita();
+
+    	raizArvore.setEsquerda(removerMenor(raizArvore.getEsquerda()));
+    	return raizArvore;
     }
 
     
     public Lista<V> recortar(K chaveDeOnde, K chaveAteOnde) {
 		
-    	// TODO
-		return null;
+    	Lista<V> itensNoIntervalo = new Lista<>();
+
+    	recortar(raiz, chaveDeOnde, chaveAteOnde, itensNoIntervalo);
+
+		return itensNoIntervalo;
 	}
+
+    private void recortar(No<K, V> raizArvore, K chaveDeOnde, K chaveAteOnde, Lista<V> itensNoIntervalo) {
+
+    	int comparacaoInicio;
+    	int comparacaoFim;
+
+    	if (raizArvore == null)
+    		return;
+
+    	comparacaoInicio = comparador.compare(raizArvore.getChave(), chaveDeOnde);
+    	comparacaoFim = comparador.compare(raizArvore.getChave(), chaveAteOnde);
+
+    	if (comparacaoInicio > 0)
+    		recortar(raizArvore.getEsquerda(), chaveDeOnde, chaveAteOnde, itensNoIntervalo);
+
+    	if ((comparacaoInicio >= 0) && (comparacaoFim <= 0))
+    		itensNoIntervalo.inserir(raizArvore.getItem());
+
+    	if (comparacaoFim < 0)
+    		recortar(raizArvore.getDireita(), chaveDeOnde, chaveAteOnde, itensNoIntervalo);
+    }
+
+    private static class ResultadoRemocao<T> {
+    	private T itemRemovido;
+    }
 
 	@Override
 	public int tamanho() {
