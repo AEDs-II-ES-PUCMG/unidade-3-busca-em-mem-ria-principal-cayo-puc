@@ -577,30 +577,6 @@ public class ABB<K, V> implements IMapeamento<K, V>{
         return maiorAtual;
     }
 
-    public V produtoMaisCaro() {
-        if (raiz == null) {
-            throw new NoSuchElementException("Árvore vazia.");
-        }
-
-        return produtoMaisCaro(raiz, raiz.getItem());
-    }
-
-    private V produtoMaisCaro(No<K,V> no, V maiorAtual) {
-        if (no == null) return maiorAtual;
-
-        Produto produtoAtual = (Produto) no.getItem();
-        Produto produtoMaior = (Produto) maiorAtual;
-
-        if (produtoAtual.valorDeVenda() > produtoMaior.valorDeVenda()) {
-            maiorAtual = no.getItem();
-        }
-
-        maiorAtual = produtoMaisCaro(no.getEsquerda(), maiorAtual);
-        maiorAtual = produtoMaisCaro(no.getDireita(), maiorAtual);
-
-        return maiorAtual;
-    }
-
     public Lista<V> buscarDescricaoComecandoCom(String prefixo) {
         Lista<V> resultado = new Lista<>();
         buscarDescricaoComecandoCom(raiz, prefixo.toLowerCase(), resultado);
@@ -661,4 +637,596 @@ public class ABB<K, V> implements IMapeamento<K, V>{
 
         relatorioProdutos(no.getDireita(), sb);
     }
+
+    public int altura() {
+        return altura(raiz);
+    }
+
+    /**
+     * Calcula recursivamente a altura de um nó.
+     */
+    private int altura(No<K, V> no) {
+        if (no == null) {
+            return -1;
+        }
+
+        int alturaEsquerda = altura(no.getEsquerda());
+        int alturaDireita = altura(no.getDireita());
+
+        return 1 + Math.max(alturaEsquerda, alturaDireita);
+    }
+
+    public V produtoMaisBarato() {
+
+    if (raiz == null)
+        throw new IllegalStateException("Árvore vazia.");
+
+    return produtoMaisBarato(raiz);
+}
+
+    private V produtoMaisBarato(No<K,V> no) {
+
+        Produto menor = (Produto) no.getItem();
+
+        if (no.getEsquerda() != null) {
+            Produto aux = (Produto) produtoMaisBarato(no.getEsquerda());
+            if (aux.valorDeVenda() < menor.valorDeVenda())
+                menor = aux;
+        }
+
+        if (no.getDireita() != null) {
+            Produto aux = (Produto) produtoMaisBarato(no.getDireita());
+            if (aux.valorDeVenda() < menor.valorDeVenda())
+                menor = aux;
+        }
+
+        return (V) menor;
+    }
+
+    public V maiorMargemLucro() {
+
+    if (raiz == null)
+        throw new IllegalStateException();
+
+    return maiorMargemLucro(raiz);
+}
+
+private V maiorMargemLucro(No<K,V> no) {
+
+    Produto maior = (Produto) no.getItem();
+
+    if (no.getEsquerda() != null) {
+        Produto aux = (Produto) maiorMargemLucro(no.getEsquerda());
+        if (aux.getMargemLucro() > maior.getMargemLucro())
+            maior = aux;
+    }
+
+    if (no.getDireita() != null) {
+        Produto aux = (Produto) maiorMargemLucro(no.getDireita());
+        if (aux.getMargemLucro() > maior.getMargemLucro())
+            maior = aux;
+    }
+
+    return (V) maior;
+}
+
+public V menorMargemLucro() {
+
+    if (raiz == null)
+        throw new IllegalStateException();
+
+    return menorMargemLucro(raiz);
+}
+
+private V menorMargemLucro(No<K,V> no) {
+
+    Produto menor = (Produto) no.getItem();
+
+    if (no.getEsquerda() != null) {
+        Produto aux = (Produto) menorMargemLucro(no.getEsquerda());
+        if (aux.getMargemLucro() < menor.getMargemLucro())
+            menor = aux;
+    }
+
+    if (no.getDireita() != null) {
+        Produto aux = (Produto) menorMargemLucro(no.getDireita());
+        if (aux.getMargemLucro() < menor.getMargemLucro())
+            menor = aux;
+    }
+
+    return (V) menor;
+}
+
+public double somaValorVenda() {
+    return somaValorVenda(raiz);
+}
+
+private double somaValorVenda(No<K,V> no) {
+
+    if (no == null)
+        return 0;
+
+    Produto p = (Produto) no.getItem();
+
+    return p.valorDeVenda()
+            + somaValorVenda(no.getEsquerda())
+            + somaValorVenda(no.getDireita());
+}
+
+public double somaPrecoCusto() {
+    return somaPrecoCusto(raiz);
+}
+
+private double somaPrecoCusto(No<K,V> no) {
+
+    if (no == null)
+        return 0;
+
+    Produto p = (Produto) no.getItem();
+
+    return p.getPrecoCusto()
+            + somaPrecoCusto(no.getEsquerda())
+            + somaPrecoCusto(no.getDireita());
+}
+
+public double mediaPrecoCusto() {
+
+    if (tamanho == 0)
+        return 0;
+
+    return somaPrecoCusto() / tamanho;
+}
+
+public double mediaValorVenda() {
+
+    if (tamanho == 0)
+        return 0;
+
+    return somaValorVenda() / tamanho;
+}
+
+public V primeiroProduto() {
+
+    if (raiz == null)
+        throw new IllegalStateException();
+
+    No<K,V> atual = raiz;
+
+    while (atual.getEsquerda() != null)
+        atual = atual.getEsquerda();
+
+    return atual.getItem();
+}
+
+public V ultimoProduto() {
+
+    if (raiz == null)
+        throw new IllegalStateException();
+
+    No<K,V> atual = raiz;
+
+    while (atual.getDireita() != null)
+        atual = atual.getDireita();
+
+    return atual.getItem();
+}
+
+public Lista<V> produtosComMargemMaiorQue(double margem) {
+
+    Lista<V> lista = new Lista<>();
+
+    produtosComMargemMaiorQue(raiz, margem, lista);
+
+    return lista;
+}
+
+private void produtosComMargemMaiorQue(No<K,V> no, double margem, Lista<V> lista) {
+
+    if (no == null)
+        return;
+
+    produtosComMargemMaiorQue(no.getEsquerda(), margem, lista);
+
+    Produto p = (Produto) no.getItem();
+
+    if (p.getMargemLucro() > margem)
+        lista.inserirFinal(no.getItem());
+
+    produtosComMargemMaiorQue(no.getDireita(), margem, lista);
+}
+
+public Lista<V> produtosComMargemMenorQue(double margem) {
+
+    Lista<V> lista = new Lista<>();
+
+    produtosComMargemMenorQue(raiz, margem, lista);
+
+    return lista;
+}
+
+private void produtosComMargemMenorQue(No<K,V> no, double margem, Lista<V> lista) {
+
+    if (no == null)
+        return;
+
+    produtosComMargemMenorQue(no.getEsquerda(), margem, lista);
+
+    Produto p = (Produto) no.getItem();
+
+    if (p.getMargemLucro() < margem)
+        lista.inserirFinal(no.getItem());
+
+    produtosComMargemMenorQue(no.getDireita(), margem, lista);
+}
+
+public Lista<V> produtosComecandoCom(char letra) {
+
+    Lista<V> lista = new Lista<>();
+
+    produtosComecandoCom(raiz, Character.toUpperCase(letra), lista);
+
+    return lista;
+}
+
+private void produtosComecandoCom(No<K,V> no, char letra, Lista<V> lista) {
+
+    if (no == null)
+        return;
+
+    produtosComecandoCom(no.getEsquerda(), letra, lista);
+
+    Produto p = (Produto) no.getItem();
+
+    if (Character.toUpperCase(p.getDescricao().charAt(0)) == letra)
+        lista.inserirFinal(no.getItem());
+
+    produtosComecandoCom(no.getDireita(), letra, lista);
+}
+
+public Lista<V> descricaoContem(String texto) {
+
+    Lista<V> lista = new Lista<>();
+
+    descricaoContem(raiz, texto.toLowerCase(), lista);
+
+    return lista;
+}
+
+private void descricaoContem(No<K,V> no, String texto, Lista<V> lista) {
+
+    if (no == null)
+        return;
+
+    descricaoContem(no.getEsquerda(), texto, lista);
+
+    Produto p = (Produto) no.getItem();
+
+    if (p.getDescricao().toLowerCase().contains(texto))
+        lista.inserirFinal(no.getItem());
+
+    descricaoContem(no.getDireita(), texto, lista);
+}
+
+public Lista<V> descricaoMaiorQue(int tamanho) {
+
+    Lista<V> lista = new Lista<>();
+
+    descricaoMaiorQue(raiz, tamanho, lista);
+
+    return lista;
+}
+
+private void descricaoMaiorQue(No<K,V> no, int tamanho, Lista<V> lista) {
+
+    if (no == null)
+        return;
+
+    descricaoMaiorQue(no.getEsquerda(), tamanho, lista);
+
+    Produto p = (Produto) no.getItem();
+
+    if (p.getDescricao().length() > tamanho)
+        lista.inserirFinal(no.getItem());
+
+    descricaoMaiorQue(no.getDireita(), tamanho, lista);
+}
+
+public int contarPereciveis() {
+
+    return contarPereciveis(raiz);
+}
+
+private int contarPereciveis(No<K,V> no) {
+
+    if (no == null)
+        return 0;
+
+    int cont = 0;
+
+    if (no.getItem() instanceof ProdutoPerecivel)
+        cont++;
+
+    cont += contarPereciveis(no.getEsquerda());
+
+    cont += contarPereciveis(no.getDireita());
+
+    return cont;
+}
+
+public int contarNaoPereciveis() {
+
+    return contarNaoPereciveis(raiz);
+}
+
+private int contarNaoPereciveis(No<K,V> no) {
+
+    if (no == null)
+        return 0;
+
+    int cont = 0;
+
+    if (no.getItem() instanceof ProdutoNaoPerecivel)
+        cont++;
+
+    cont += contarNaoPereciveis(no.getEsquerda());
+
+    cont += contarNaoPereciveis(no.getDireita());
+
+    return cont;
+}
+
+public Lista<V> produtosFolhas() {
+
+    Lista<V> lista = new Lista<>();
+
+    produtosFolhas(raiz, lista);
+
+    return lista;
+}
+
+private void produtosFolhas(No<K,V> no, Lista<V> lista){
+
+    if(no == null)
+        return;
+
+    produtosFolhas(no.getEsquerda(), lista);
+
+    if(no.grau() == 0)
+        lista.inserirFinal(no.getItem());
+
+    produtosFolhas(no.getDireita(), lista);
+}
+
+public Lista<V> produtosInternos(){
+
+    Lista<V> lista = new Lista<>();
+
+    produtosInternos(raiz, lista);
+
+    return lista;
+}
+
+private void produtosInternos(No<K,V> no, Lista<V> lista){
+
+    if(no == null)
+        return;
+
+    produtosInternos(no.getEsquerda(), lista);
+
+    if(no.grau() > 0)
+        lista.inserirFinal(no.getItem());
+
+    produtosInternos(no.getDireita(), lista);
+}
+
+public Lista<V> produtosGrauDois(){
+
+    Lista<V> lista = new Lista<>();
+
+    produtosGrauDois(raiz, lista);
+
+    return lista;
+}
+
+private void produtosGrauDois(No<K,V> no, Lista<V> lista){
+
+    if(no == null)
+        return;
+
+    produtosGrauDois(no.getEsquerda(), lista);
+
+    if(no.grau() == 2)
+        lista.inserirFinal(no.getItem());
+
+    produtosGrauDois(no.getDireita(), lista);
+}
+
+public int quantidadeFolhas(){
+
+    return quantidadeFolhas(raiz);
+}
+
+private int quantidadeFolhas(No<K,V> no){
+
+    if(no == null)
+        return 0;
+
+    if(no.grau() == 0)
+        return 1;
+
+    return quantidadeFolhas(no.getEsquerda()) +
+           quantidadeFolhas(no.getDireita());
+}
+
+public int quantidadeInternos(){
+
+    return quantidadeInternos(raiz);
+}
+
+private int quantidadeInternos(No<K,V> no){
+
+    if(no == null)
+        return 0;
+
+    int cont = 0;
+
+    if(no.grau() > 0)
+        cont++;
+
+    cont += quantidadeInternos(no.getEsquerda());
+    cont += quantidadeInternos(no.getDireita());
+
+    return cont;
+}
+
+public Lista<V> produtosNivel(int nivel){
+
+    Lista<V> lista = new Lista<>();
+
+    produtosNivel(raiz,0,nivel,lista);
+
+    return lista;
+}
+
+private void produtosNivel(No<K,V> no,
+                           int atual,
+                           int nivel,
+                           Lista<V> lista){
+
+    if(no == null)
+        return;
+
+    if(atual == nivel)
+        lista.inserirFinal(no.getItem());
+
+    produtosNivel(no.getEsquerda(),
+                  atual+1,
+                  nivel,
+                  lista);
+
+    produtosNivel(no.getDireita(),
+                  atual+1,
+                  nivel,
+                  lista);
+}
+
+public int quantidadeNivel(int nivel){
+
+    return quantidadeNivel(raiz,0,nivel);
+}
+
+private int quantidadeNivel(No<K,V> no,
+                            int atual,
+                            int nivel){
+
+    if(no == null)
+        return 0;
+
+    int cont = 0;
+
+    if(atual == nivel)
+        cont++;
+
+    cont += quantidadeNivel(no.getEsquerda(),
+                            atual+1,
+                            nivel);
+
+    cont += quantidadeNivel(no.getDireita(),
+                            atual+1,
+                            nivel);
+
+    return cont;
+}
+
+public Lista<V> produtosNivelPar(){
+
+    Lista<V> lista = new Lista<>();
+
+    produtosNivelPar(raiz,0,lista);
+
+    return lista;
+}
+
+private void produtosNivelPar(No<K,V> no,
+                              int nivel,
+                              Lista<V> lista){
+
+    if(no == null)
+        return;
+
+    if(nivel % 2 == 0)
+        lista.inserirFinal(no.getItem());
+
+    produtosNivelPar(no.getEsquerda(),
+                     nivel+1,
+                     lista);
+
+    produtosNivelPar(no.getDireita(),
+                     nivel+1,
+                     lista);
+}
+
+public Lista<V> produtosNivelImpar(){
+
+    Lista<V> lista = new Lista<>();
+
+    produtosNivelImpar(raiz,0,lista);
+
+    return lista;
+}
+
+private void produtosNivelImpar(No<K,V> no,
+                                int nivel,
+                                Lista<V> lista){
+
+    if(no == null)
+        return;
+
+    if(nivel % 2 != 0)
+        lista.inserirFinal(no.getItem());
+
+    produtosNivelImpar(no.getEsquerda(),
+                       nivel+1,
+                       lista);
+
+    produtosNivelImpar(no.getDireita(),
+                       nivel+1,
+                       lista);
+}
+
+public V produtoMaisProfundo(){
+
+    return produtoMaisProfundo(raiz,0).produto;
+}
+
+private class Resultado{
+
+    V produto;
+    int nivel;
+
+    Resultado(V produto,int nivel){
+        this.produto = produto;
+        this.nivel = nivel;
+    }
+}
+
+private Resultado produtoMaisProfundo(No<K,V> no,int nivel){
+
+    if(no == null)
+        return new Resultado(null,-1);
+
+    Resultado melhor = new Resultado(no.getItem(),nivel);
+
+    Resultado esq = produtoMaisProfundo(no.getEsquerda(),nivel+1);
+
+    Resultado dir = produtoMaisProfundo(no.getDireita(),nivel+1);
+
+    if(esq.nivel > melhor.nivel)
+        melhor = esq;
+
+    if(dir.nivel > melhor.nivel)
+        melhor = dir;
+
+    return melhor;
+}
 }
