@@ -198,5 +198,108 @@ public class TabelaHash<K, V> implements IMapeamento<K,V> {
 
 	//#endregion
 
+	public double fatorDeCarga() {
+		return (double) tamanho() / capacidade;
+	}
+
+	public int contarPosicoesVazias() {
+		int vazias = 0;
+
+		for (int i = 0; i < capacidade; i++) {
+			if (tabelaHash[i].vazia()) {
+				vazias++;
+			}
+		}
+
+		return vazias;
+	}
+
+	public int contarColisoes() {
+		int colisoes = 0;
+
+		for (int i = 0; i < capacidade; i++) {
+			int tamanhoLista = tabelaHash[i].tamanho();
+
+			if (tamanhoLista > 1) {
+				colisoes += tamanhoLista - 1;
+			}
+		}
+
+		return colisoes;
+	}
+
+	public int tamanhoMaiorLista() {
+		int maior = 0;
+
+		for (int i = 0; i < capacidade; i++) {
+			if (tabelaHash[i].tamanho() > maior) {
+				maior = tabelaHash[i].tamanho();
+			}
+		}
+
+		return maior;
+	}
 	
+	public int contarPedidosDoProduto(K produto) {
+		try {
+			V valor = pesquisar(produto);
+
+			Lista<Pedido> pedidos = (Lista<Pedido>) valor;
+
+			return pedidos.tamanho();
+
+		} catch (NoSuchElementException e) {
+			return 0;
+		}
+	}
+
+	public boolean produtoTemPedidos(K produto) {
+		try {
+			pesquisar(produto);
+			return true;
+		} catch (NoSuchElementException e) {
+			return false;
+		}
+	}
+
+	public String relatorioProdutosComPedidos() {
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < capacidade; i++) {
+			if (!tabelaHash[i].vazia()) {
+				sb.append("Posição ").append(i).append(":\n");
+				sb.append(tabelaHash[i].toString()).append("\n");
+			}
+		}
+
+		return sb.toString();
+	}
+
+	public int contarProdutosComPedidos() {
+		int total = 0;
+
+		for (int i = 0; i < capacidade; i++) {
+			total += tabelaHash[i].tamanho();
+		}
+
+		return total;
+	}
+
+	public int maiorQuantidadePedidosPorProduto() {
+		int maior = 0;
+
+		for (int i = 0; i < capacidade; i++) {
+			for (int j = 0; j < tabelaHash[i].tamanho(); j++) {
+				Entrada<K,V> entrada = tabelaHash[i].pesquisar(j);
+
+				Lista<Pedido> pedidos = (Lista<Pedido>) entrada.getValor();
+
+				if (pedidos.tamanho() > maior) {
+					maior = pedidos.tamanho();
+				}
+			}
+		}
+
+		return maior;
+	}
 }

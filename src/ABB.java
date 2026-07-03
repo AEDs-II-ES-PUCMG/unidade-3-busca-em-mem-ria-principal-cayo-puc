@@ -302,4 +302,363 @@ public class ABB<K, V> implements IMapeamento<K, V>{
 	public double getTempo() {
 		return tempo;
 	}
+
+    public boolean contem(K chave) {
+        try {
+            pesquisar(chave);
+            return true;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    public int contarPorGrau(int grau) {
+        return contarPorGrau(raiz, grau);
+    }
+
+    private int contarPorGrau(No<K,V> no, int grau) {
+        if (no == null) {
+            return 0;
+        }
+
+        int total = 0;
+
+        if (no.grau() == grau) {
+            total = 1;
+        }
+
+        return total
+            + contarPorGrau(no.getEsquerda(), grau)
+            + contarPorGrau(no.getDireita(), grau);
+    }
+
+    public boolean estaBalanceada() {
+        return estaBalanceada(raiz);
+    }
+
+    private boolean estaBalanceada(No<K,V> no) {
+        if (no == null) {
+            return true;
+        }
+
+        int fb = altura(no.getEsquerda()) - altura(no.getDireita());
+
+        if (fb < -1 || fb > 1) {
+            return false;
+        }
+
+        return estaBalanceada(no.getEsquerda())
+            && estaBalanceada(no.getDireita());
+    }
+
+    public String listarIntervalo(K inicio, K fim) {
+        StringBuilder sb = new StringBuilder();
+        listarIntervalo(raiz, inicio, fim, sb);
+        return sb.toString();
+    }
+
+    private void listarIntervalo(No<K,V> no, K inicio, K fim, StringBuilder sb) {
+        if (no == null) {
+            return;
+        }
+
+        if (comparador.compare(no.getChave(), inicio) > 0) {
+            listarIntervalo(no.getEsquerda(), inicio, fim, sb);
+        }
+
+        if (comparador.compare(no.getChave(), inicio) >= 0 &&
+            comparador.compare(no.getChave(), fim) <= 0) {
+            sb.append(no.getItem()).append("\n");
+        }
+
+        if (comparador.compare(no.getChave(), fim) < 0) {
+            listarIntervalo(no.getDireita(), inicio, fim, sb);
+        }
+    }
+
+    public int contarIntervalo(K inicio, K fim) {
+        return contarIntervalo(raiz, inicio, fim);
+    }
+
+    private int contarIntervalo(No<K,V> no, K inicio, K fim) {
+        if (no == null) {
+            return 0;
+        }
+
+        if (comparador.compare(no.getChave(), inicio) < 0) {
+            return contarIntervalo(no.getDireita(), inicio, fim);
+        }
+
+        if (comparador.compare(no.getChave(), fim) > 0) {
+            return contarIntervalo(no.getEsquerda(), inicio, fim);
+        }
+
+        return 1
+            + contarIntervalo(no.getEsquerda(), inicio, fim)
+            + contarIntervalo(no.getDireita(), inicio, fim);
+    }
+
+    public V maior() {
+        if (raiz == null) {
+            throw new NoSuchElementException("Árvore vazia.");
+        }
+
+        return maior(raiz).getItem();
+    }
+
+    private No<K,V> maior(No<K,V> no) {
+        if (no.getDireita() == null) {
+            return no;
+        }
+
+        return maior(no.getDireita());
+    }
+
+    public V menor() {
+        if (raiz == null) {
+            throw new NoSuchElementException("Árvore vazia.");
+        }
+
+        return menor(raiz).getItem();
+    }
+
+    private No<K,V> menor(No<K,V> no) {
+        if (no.getEsquerda() == null) {
+            return no;
+        }
+
+        return menor(no.getEsquerda());
+    }
+
+    public Lista<V> filtrarPorValorMaiorQue(double valorMinimo) {
+        Lista<V> resultado = new Lista<>();
+        filtrarPorValorMaiorQue(raiz, valorMinimo, resultado);
+        return resultado;
+    }
+
+    private void filtrarPorValorMaiorQue(No<K, V> no, double valorMinimo, Lista<V> resultado) {
+        if (no == null) {
+            return;
+        }
+
+        filtrarPorValorMaiorQue(no.getEsquerda(), valorMinimo, resultado);
+
+        Produto produto = (Produto) no.getItem();
+
+        if (produto.valorDeVenda() > valorMinimo) {
+            resultado.inserir(no.getItem());
+        }
+
+        filtrarPorValorMaiorQue(no.getDireita(), valorMinimo, resultado);
+    }
+
+    public Lista<V> buscarPorTrechoDescricao(String trecho) {
+        Lista<V> resultado = new Lista<>();
+        buscarPorTrechoDescricao(raiz, trecho.toLowerCase(), resultado);
+        return resultado;
+    }
+
+    private void buscarPorTrechoDescricao(No<K, V> no, String trecho, Lista<V> resultado) {
+        if (no == null) {
+            return;
+        }
+
+        buscarPorTrechoDescricao(no.getEsquerda(), trecho, resultado);
+
+        Produto produto = (Produto) no.getItem();
+
+        if (produto.getDescricao().toLowerCase().contains(trecho)) {
+            resultado.inserir(no.getItem());
+        }
+
+        buscarPorTrechoDescricao(no.getDireita(), trecho, resultado);
+    }
+
+    public Lista<V> filtrarPorValorMenorQue(double valorMaximo) {
+        Lista<V> resultado = new Lista<>();
+        filtrarPorValorMenorQue(raiz, valorMaximo, resultado);
+        return resultado;
+    }
+
+    private void filtrarPorValorMenorQue(No<K,V> no, double valorMaximo, Lista<V> resultado) {
+        if (no == null) return;
+
+        filtrarPorValorMenorQue(no.getEsquerda(), valorMaximo, resultado);
+
+        Produto produto = (Produto) no.getItem();
+
+        if (produto.valorDeVenda() < valorMaximo) {
+            resultado.inserir(no.getItem());
+        }
+
+        filtrarPorValorMenorQue(no.getDireita(), valorMaximo, resultado);
+    }
+
+    public Lista<V> filtrarPorFaixaDePreco(double minimo, double maximo) {
+        Lista<V> resultado = new Lista<>();
+        filtrarPorFaixaDePreco(raiz, minimo, maximo, resultado);
+        return resultado;
+    }
+
+    private void filtrarPorFaixaDePreco(No<K,V> no, double minimo, double maximo, Lista<V> resultado) {
+        if (no == null) return;
+
+        filtrarPorFaixaDePreco(no.getEsquerda(), minimo, maximo, resultado);
+
+        Produto produto = (Produto) no.getItem();
+        double valor = produto.valorDeVenda();
+
+        if (valor >= minimo && valor <= maximo) {
+            resultado.inserir(no.getItem());
+        }
+
+        filtrarPorFaixaDePreco(no.getDireita(), minimo, maximo, resultado);
+    }
+
+    public int contarProdutosAcimaDe(double valorMinimo) {
+        return contarProdutosAcimaDe(raiz, valorMinimo);
+    }
+
+    private int contarProdutosAcimaDe(No<K,V> no, double valorMinimo) {
+        if (no == null) return 0;
+
+        Produto produto = (Produto) no.getItem();
+
+        int total = produto.valorDeVenda() > valorMinimo ? 1 : 0;
+
+        return total
+            + contarProdutosAcimaDe(no.getEsquerda(), valorMinimo)
+            + contarProdutosAcimaDe(no.getDireita(), valorMinimo);
+    }
+
+    public double somarValorDeVenda() {
+        return somarValorDeVenda(raiz);
+    }
+
+    private double somarValorDeVenda(No<K,V> no) {
+        if (no == null) return 0.0;
+
+        Produto produto = (Produto) no.getItem();
+
+        return produto.valorDeVenda()
+            + somarValorDeVenda(no.getEsquerda())
+            + somarValorDeVenda(no.getDireita());
+    }
+
+    public double mediaValorDeVenda() {
+        if (tamanho == 0) {
+            return 0.0;
+        }
+
+        return somarValorDeVenda() / tamanho;
+    }
+
+    public V produtoMaisCaro() {
+        if (raiz == null) {
+            throw new NoSuchElementException("Árvore vazia.");
+        }
+
+        return produtoMaisCaro(raiz, raiz.getItem());
+    }
+
+    private V produtoMaisCaro(No<K,V> no, V maiorAtual) {
+        if (no == null) return maiorAtual;
+
+        Produto produtoAtual = (Produto) no.getItem();
+        Produto produtoMaior = (Produto) maiorAtual;
+
+        if (produtoAtual.valorDeVenda() > produtoMaior.valorDeVenda()) {
+            maiorAtual = no.getItem();
+        }
+
+        maiorAtual = produtoMaisCaro(no.getEsquerda(), maiorAtual);
+        maiorAtual = produtoMaisCaro(no.getDireita(), maiorAtual);
+
+        return maiorAtual;
+    }
+
+    public V produtoMaisCaro() {
+        if (raiz == null) {
+            throw new NoSuchElementException("Árvore vazia.");
+        }
+
+        return produtoMaisCaro(raiz, raiz.getItem());
+    }
+
+    private V produtoMaisCaro(No<K,V> no, V maiorAtual) {
+        if (no == null) return maiorAtual;
+
+        Produto produtoAtual = (Produto) no.getItem();
+        Produto produtoMaior = (Produto) maiorAtual;
+
+        if (produtoAtual.valorDeVenda() > produtoMaior.valorDeVenda()) {
+            maiorAtual = no.getItem();
+        }
+
+        maiorAtual = produtoMaisCaro(no.getEsquerda(), maiorAtual);
+        maiorAtual = produtoMaisCaro(no.getDireita(), maiorAtual);
+
+        return maiorAtual;
+    }
+
+    public Lista<V> buscarDescricaoComecandoCom(String prefixo) {
+        Lista<V> resultado = new Lista<>();
+        buscarDescricaoComecandoCom(raiz, prefixo.toLowerCase(), resultado);
+        return resultado;
+    }
+
+    private void buscarDescricaoComecandoCom(No<K,V> no, String prefixo, Lista<V> resultado) {
+        if (no == null) return;
+
+        buscarDescricaoComecandoCom(no.getEsquerda(), prefixo, resultado);
+
+        Produto produto = (Produto) no.getItem();
+
+        if (produto.getDescricao().toLowerCase().startsWith(prefixo)) {
+            resultado.inserir(no.getItem());
+        }
+
+        buscarDescricaoComecandoCom(no.getDireita(), prefixo, resultado);
+    }
+
+    public Lista<V> filtrarPorMargemMaiorQue(double margemMinima) {
+        Lista<V> resultado = new Lista<>();
+        filtrarPorMargemMaiorQue(raiz, margemMinima, resultado);
+        return resultado;
+    }
+
+    private void filtrarPorMargemMaiorQue(No<K,V> no, double margemMinima, Lista<V> resultado) {
+        if (no == null) return;
+
+        filtrarPorMargemMaiorQue(no.getEsquerda(), margemMinima, resultado);
+
+        Produto produto = (Produto) no.getItem();
+
+        if (produto.getMargemLucro() > margemMinima) {
+            resultado.inserir(no.getItem());
+        }
+
+        filtrarPorMargemMaiorQue(no.getDireita(), margemMinima, resultado);
+    }
+
+    public String relatorioProdutos() {
+        StringBuilder sb = new StringBuilder();
+        relatorioProdutos(raiz, sb);
+        return sb.toString();
+    }
+
+    private void relatorioProdutos(No<K,V> no, StringBuilder sb) {
+        if (no == null) return;
+
+        relatorioProdutos(no.getEsquerda(), sb);
+
+        Produto produto = (Produto) no.getItem();
+
+        sb.append("Produto: ").append(produto.getDescricao()).append("\n");
+        sb.append("Valor de venda: R$ ")
+        .append(String.format("%.2f", produto.valorDeVenda()))
+        .append("\n\n");
+
+        relatorioProdutos(no.getDireita(), sb);
+    }
 }

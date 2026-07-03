@@ -146,14 +146,24 @@ public class App {
     }
 
     static <K> Produto localizarProduto(ABB<K, Produto> produtosCadastrados, K chave) {
-        try {
         cabecalho();
-        Produto localizado = produtosCadastrados.pesquisar(chave);
-        System.out.println("Tempo: " + produtosCadastrados.getTempo());
-        System.out.println("Comparações: " + produtosCadastrados.getComparacoes());
-        return localizado;
-        } catch (NoSuchElementException | IllegalStateException excecao) {
-            System.out.println("Produto nao encontrado.");
+
+        try {
+            Produto localizado = produtosCadastrados.pesquisar(chave);
+
+            System.out.println("Tempo: " + produtosCadastrados.getTempo());
+            System.out.println("Comparações: " + produtosCadastrados.getComparacoes());
+
+            pausa();
+            return localizado;
+
+        } catch (NoSuchElementException e) {
+            System.out.println("Produto não encontrado.");
+
+            System.out.println("Tempo: " + produtosCadastrados.getTempo());
+            System.out.println("Comparações: " + produtosCadastrados.getComparacoes());
+
+            pausa();
             return null;
         }
     }
@@ -277,4 +287,30 @@ public class App {
 
         teclado.close();
     }
+
+    private static void estatisticasHash() {
+        cabecalho();
+
+        System.out.println("Quantidade de relações produto -> pedidos: " + pedidosPorProduto.tamanho());
+        System.out.println("Fator de carga: " + pedidosPorProduto.fatorDeCarga());
+        System.out.println("Posições vazias: " + pedidosPorProduto.contarPosicoesVazias());
+        System.out.println("Colisões: " + pedidosPorProduto.contarColisoes());
+        System.out.println("Maior lista: " + pedidosPorProduto.tamanhoMaiorLista());
+
+        pausa();
+    }
+
+    private static void estatisticasArvore() {
+        cabecalho();
+
+        System.out.println("Produtos cadastrados: " + produtosPorId.tamanho());
+        System.out.println("Altura da árvore: " + produtosPorId.altura());
+        System.out.println("Folhas: " + produtosPorId.contarPorGrau(0));
+        System.out.println("Nós com um filho: " + produtosPorId.contarPorGrau(1));
+        System.out.println("Nós com dois filhos: " + produtosPorId.contarPorGrau(2));
+        System.out.println("Está balanceada? " + produtosPorId.estaBalanceada());
+
+        pausa();
+    }
+    
 }
